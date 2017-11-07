@@ -6,6 +6,7 @@ You are not Connected to any JIRA yet. Run `./jirafs connect <url>` connect via 
 https://jira.apps.seibert-media.net is not connected as the default-Instance. You can run all Commands with a `--instance`-Parameter to work with multiple JIRA instance, ie. `./jirafs --instance another-instance connect <url>`.
 Run `./jirafs /mnt &` to mount the Default-View of the connected JIRA to /mnt.
 
+./jirafs -url https://jira.apps.seibert-media.net -username pkoerner -project=JUWEB -passwordFile=/tmp/jirafspw -mountpoint /mnt
 
 
 

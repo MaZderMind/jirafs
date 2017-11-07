@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/andygrunwald/go-jira"
-	"github.com/mazdermind/jirafs/fetcher"
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
+	"github.com/andygrunwald/go-jira"
+	"github.com/mazdermind/jirafs/fetcher"
+	"github.com/mazdermind/jirafs/jirastate"
+	"github.com/mazdermind/jirafs/fs"
 )
 
 const EXIT_CONFIG_ERROR = 1
@@ -49,10 +50,14 @@ func main() {
 	jiraClient.Authentication.SetBasicAuth(*username, *password)
 
 	fmt.Printf("Starting Background-Fetcher\n")
-	dataFetcher := fetcher.NewFetcher(jiraClient, *projectKey)
-
+	state := jirastate.NewState()
+	dataFetcher := fetcher.NewFetcher(jiraClient, state, *projectKey)
 	dataFetcher.StartFetcher()
 
-	// FIXME create real mountpoint here and serve it
-	time.Sleep(5 * time.Minute)
+	jirafs, err := fs.NewJiraFs(state, *mountpoint)
+	if err != nil {
+		fmt.Printf("Unable to mount jirafs to %q: %s\n", *mountpoint, err)
+		os.Exit(EXIT_RUNTIME_ERROR)
+	}
+	jirafs.Serve()
 }

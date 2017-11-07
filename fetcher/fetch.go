@@ -5,20 +5,23 @@ import (
 	"time"
 	"fmt"
 	"strconv"
+	"github.com/mazdermind/jirafs/jirastate"
 )
 
-const ISSUE_FETCHER_INTERVAL = 30 * time.Second
+const ISSUE_FETCHER_INTERVAL = 5 * time.Minute
 
 type Fetcher struct {
 	client     *jira.Client
+	state      *jirastate.State
 	projectKey string
 
 	StatusChangeListener []func()
 }
 
-func NewFetcher(client *jira.Client, projectKey string) (*Fetcher) {
+func NewFetcher(client *jira.Client, state *jirastate.State, projectKey string) (*Fetcher) {
 	f := &Fetcher{
 		client:     client,
+		state:      state,
 		projectKey: projectKey,
 	}
 
@@ -30,7 +33,7 @@ func (fetcher *Fetcher) StartFetcher() {
 }
 
 func (fetcher *Fetcher) startIssueFetcher() {
-	fetcher.fetchIssues()
+	go fetcher.fetchIssues()
 
 	ticker := time.NewTicker(ISSUE_FETCHER_INTERVAL)
 	go func() {
@@ -77,8 +80,12 @@ func (fetcher *Fetcher) fetchIssues() {
 	}
 
 	fmt.Printf("Fetched %d issues for query %s\n", len(issues), query)
-	State.Issues = issues
+	fetcher.state.SetIssues(issues)
 
+	fetcher.notifyListener()
+}
+
+func (fetcher *Fetcher) notifyListener() {
 	for _, listener := range fetcher.StatusChangeListener {
 		listener()
 	}
