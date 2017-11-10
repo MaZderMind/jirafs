@@ -4,7 +4,67 @@ import (
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"fmt"
+	"github.com/andygrunwald/go-jira"
+	"strings"
 )
+
+type issueProperty struct {
+	name       string
+	getContent func(issue *jira.Issue) string
+}
+
+var issueProperties = [...]issueProperty{
+	{
+		name: "summary",
+		getContent: func(issue *jira.Issue) string {
+			return issue.Fields.Summary
+		},
+	}, {
+		name: "description",
+		getContent: func(issue *jira.Issue) string {
+			return issue.Fields.Description
+		},
+	}, {
+		name: "assignee",
+		getContent: func(issue *jira.Issue) string {
+			if issue.Fields.Assignee == nil {
+				return ""
+			}
+			return issue.Fields.Assignee.Name
+		},
+	}, {
+		name: "creator",
+		getContent: func(issue *jira.Issue) string {
+			if issue.Fields.Creator == nil {
+				return ""
+			}
+			return issue.Fields.Creator.Name
+		},
+	}, {
+		name: "reporter",
+		getContent: func(issue *jira.Issue) string {
+			if issue.Fields.Reporter == nil {
+				return ""
+			}
+			return issue.Fields.Reporter.Name
+		},
+	}, {
+		name: "type",
+		getContent: func(issue *jira.Issue) string {
+			return issue.Fields.Type.Name
+		},
+	},
+}
+
+func issuePropertiesRegex() string {
+	var issuePropertyNames []string
+
+	for _, issueProperty := range issueProperties {
+		issuePropertyNames = append(issuePropertyNames, issueProperty.name)
+	}
+
+	return strings.Join(issuePropertyNames, "|")
+}
 
 func propertyValue(fs *JiraFsImpl, matches []string) (string, error) {
 	issueKey := matches[1]
@@ -16,13 +76,10 @@ func propertyValue(fs *JiraFsImpl, matches []string) (string, error) {
 		return "", nil
 	}
 
-	switch property {
-	case "summary":
-		return issue.Fields.Summary, nil
-		break
-	case "description":
-		return issue.Fields.Description, nil
-		break
+	for _, issueProperty := range issueProperties {
+		if issueProperty.name == property {
+			return issueProperty.getContent(issue), nil
+		}
 	}
 
 	return "", fmt.Errorf("unknown Issue-Property: %s", property)

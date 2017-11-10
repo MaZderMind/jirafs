@@ -5,10 +5,13 @@ import (
 )
 
 func issueDirList(_ *JiraFsImpl, _ []string) ([]fuse.DirEntry, fuse.Status) {
-	return []fuse.DirEntry{
-		{Name: "summary", Mode: fuse.S_IFREG},
-		{Name: "description", Mode: fuse.S_IFREG},
-	}, fuse.OK
+	var entries []fuse.DirEntry;
+	for _, issueProperty := range issueProperties {
+		entry := fuse.DirEntry{Name: issueProperty.name, Mode: fuse.S_IFREG}
+		entries = append(entries, entry)
+	}
+
+	return entries, fuse.OK
 }
 
 func issueDirAttr(fs *JiraFsImpl, matches []string) (*fuse.Attr, fuse.Status) {

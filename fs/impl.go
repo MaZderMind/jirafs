@@ -44,7 +44,7 @@ var paths = [...]path{
 		readFn: nil,
 	},
 	{
-		regex:  compileOrNil("^issues/([^/]+)/(summary|description)$"),
+		regex:  compileOrNil("^issues/([^/]+)/(" + issuePropertiesRegex() + ")$"),
 		attrFn: issuePropertyAttr,
 		listFn: nil,
 		readFn: issuePropertyRead,
