@@ -1,6 +1,7 @@
 mkdir -p $GOPATH/src/github.com/mazdermind
 cd $GOPATH/src/github.com/mazdermind/
-git clone ssh://git@bitbucket.apps.seibert-media.net:7999/~pkoerner/jirafs.git
+
+git clone https://github.com/MaZderMind/jirafs.git
 cd jirafs
 go get
 go build
